@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: ai-test-automation-agent
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run db:migrate && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.x
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /sign-in
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /sign-up
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_RAZORPAY_KEY_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: BROWSERBASE_API_KEY
+        sync: false
+      - key: BROWSERBASE_PROJECT_ID
+        sync: false
+      - key: GITHUB_APP_ID
+        sync: false
+      - key: GITHUB_APP_PRIVATE_KEY
+        sync: false
+      - key: GITHUB_APP_WEBHOOK_SECRET
+        sync: false
+      - key: GITHUB_APP_SETUP_URL
+        sync: false
+      - key: GITHUB_APP_NAME
+        sync: false
+    healthCheckPath: /
+    autoDeploy: true

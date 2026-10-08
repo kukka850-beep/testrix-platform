@@ -1,0 +1,32 @@
+name: Testrix CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  statuses: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Testrix tests
+        id: testrix
+        run: |
+          curl -s -X POST ${{ secrets.TESTRIX_API_URL }}/api/github/actions/run \
+            -H "Authorization: Bearer ${{ secrets.TESTRIX_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repoId": ${{ secrets.TESTRIX_REPO_ID }},
+              "repoFullName": "${{ github.repository }}",
+              "branch": "${{ github.head_ref || github.ref_name }}",
+              "commitSha": "${{ github.event.pull_request.head.sha || github.sha }}",
+              "prNumber": ${{ github.event.pull_request.number || 0 }},
+              "githubToken": "${{ secrets.GITHUB_TOKEN }}"
+            }'

@@ -1,0 +1,90 @@
+import { integer, jsonb, pgTable, serial, text, timestamp, varchar, uniqueIndex } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name"),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  credits: integer("credits").default(200).notNull(),
+  installationId: text("installation_id"),
+  usageGenerations: integer("usage_generations").default(0).notNull(),
+  usageRuns: integer("usage_runs").default(0).notNull(),
+  usagePeriodStart: timestamp("usage_period_start").defaultNow().notNull(),
+});
+
+export const repositories = pgTable("repositories", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  repoId: integer("repo_id").notNull(),
+  name: text("name").notNull(),
+  full_name: text("full_name").notNull(),
+  private: integer("private").notNull(),
+  html_url: text("html_url").notNull(),
+  description: text("description"),
+  owner: text("owner").notNull(),
+  language: text("language"),
+  defaultBranch: text("default_branch"),
+  targetDomain: varchar("target_domain").default("http://localhost:3000"),
+  globalInstruction: text("global_instruction"),
+  testEmail: text("test_email"),
+  testPassword: text("test_password"),
+  clerkSecretKey: text("clerk_secret_key"),
+  ciApiKey: text("ci_api_key"),
+}, (table) => [
+  uniqueIndex("repositories_ci_api_key_unique").on(table.ciApiKey),
+]);
+
+export const TestCasesTable = pgTable("test_cases", {
+  id: serial("id").primaryKey(),
+
+  // User / project details
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  repoId: varchar("repo_id", { length: 255 }),
+  repoName: varchar("repo_name", { length: 255 }).notNull(),
+  repoOwner: varchar("repo_owner", { length: 255 }).notNull(),
+  branch: varchar("branch", { length: 100 }).default("main"),
+
+  // Main test case data
+  title: varchar("title", { length: 500 }).notNull(),
+  description: text("description").notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  priority: varchar("priority", { length: 50 }).notNull(),
+
+  // Important metadata for second step: Browserbase script generation
+  targetRoute: varchar("target_route", { length: 500 }),
+  targetFiles: jsonb("target_files").$type<string[]>().default([]),
+  expectedResult: text("expected_result"),
+
+  // Later you can update these fields
+  browserbaseScript: text("browserbase_script"),
+  status: varchar("status", { length: 100 }).default("generated"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+
+  logs: jsonb("logs").$type<string[]>().default([]),
+  sessionId: varchar("session_id", { length: 255 }),
+  sessionUrl: varchar("session_url", { length: 500 })
+});
+
+
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  planName: text("plan_name").notNull(),
+  planBadge: text("plan_badge"),
+  creditsToGrant: integer("credits_to_grant").default(0).notNull(),
+  priceMonthly: integer("price_monthly"),
+  priceAnnually: integer("price_annually"),
+  billingPeriod: text("billing_period"),
+  isActive: integer("is_active").default(0).notNull(),
+  razorpayOrderId: text("razorpay_order_id"),
+  razorpayPaymentId: text("razorpay_payment_id"),
+  status: text("status").default("active").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"),
+}, (table) => [
+  uniqueIndex("subscriptions_razorpay_payment_id_unique").on(table.razorpayPaymentId),
+]);
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
